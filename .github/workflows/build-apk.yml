@@ -1,0 +1,49 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: |
+          python3 -m pip install --quiet httpx==0.28.1 h2==4.2.0 certifi pytest
+          python3 -m pytest -q tests
+
+      - name: Cache buildozer global dir
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-global-
+
+      - name: Build APK with Buildozer
+        id: buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          command: buildozer android debug
+          buildozer_version: stable
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tg-ws-proxy-launcher-apk
+          path: ${{ steps.buildozer.outputs.filename }}
+          if-no-files-found: error
+
+      - name: Attach APK to GitHub release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.buildozer.outputs.filename }}

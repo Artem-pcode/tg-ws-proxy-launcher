@@ -1,0 +1,13 @@
+.buildozer/
+bin/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.keystore
+*.jks
+.venv/
+venv/
+.idea/
+.vscode/
+*.apk
+*.aab
