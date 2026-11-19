@@ -37,7 +37,7 @@ STOP_JOIN_TIMEOUT = 8.0
 
 # ------------------------------------------------------------------ логи
 
-def setup_logging(verbose: bool) -> logging.Handler:
+def setup_logging(verbose: bool, max_mb: float = 2.0) -> logging.Handler:
     root = logging.getLogger()
     for h in list(root.handlers):
         if getattr(h, "_tgwsp", False):
@@ -45,7 +45,7 @@ def setup_logging(verbose: bool) -> logging.Handler:
     fmt = logging.Formatter("%(asctime)s  %(levelname)-5s  %(message)s",
                             datefmt="%Y-%m-%d %H:%M:%S")
     fh = logging.handlers.RotatingFileHandler(
-        paths.log_path(), maxBytes=2 * 1024 * 1024, backupCount=1,
+        paths.log_path(), maxBytes=int(max(0.5, float(max_mb)) * 1024 * 1024), backupCount=1,
         encoding="utf-8")
     fh.setFormatter(fmt)
     fh._tgwsp = True  # type: ignore[attr-defined]
@@ -205,7 +205,7 @@ class ProxyRunner(threading.Thread):
                 mod = self.module
                 self.status.update(state="starting", error="")
             else:
-                setup_logging(bool(cfg.get("verbose")))
+                setup_logging(bool(cfg.get("verbose")), cfg.get("log_max_mb", 5.0))
                 self.status.update(
                     state="starting", error="", host=cfg["host"], port=cfg["port"])
                 errs = config_store.validate(cfg)
@@ -363,7 +363,7 @@ def run() -> int:
     paths.exchange_dir()
     started_at = time.time()
     cfg0 = config_store.load()
-    setup_logging(bool(cfg0.get("verbose")))
+    setup_logging(bool(cfg0.get("verbose")), cfg0.get("log_max_mb", 5.0))
     log.info("Сервис запущен, pid=%d, аргумент=%r", os.getpid(),
              os.environ.get("PYTHON_SERVICE_ARGUMENT"))
 

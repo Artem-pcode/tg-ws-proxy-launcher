@@ -19,7 +19,7 @@ PROXY_KEYS = (
     "port", "host", "secret", "dc_ip", "buf_kb", "pool_size",
     "cfproxy_domains", "cfproxy_worker_domains", "no_h2", "no_cfproxy",
     "no_secure", "fake_tls_domain", "force_test_dc", "proxy_protocol",
-    "verbose",
+    "verbose", "log_max_mb",
 )
 
 DEFAULTS: Dict[str, Any] = {
@@ -42,6 +42,9 @@ DEFAULTS: Dict[str, Any] = {
     "battery_saver": False,
     "saver_timeout_min": 5.0,
     "saver_debug": False,
+    # логирование ядра и обновления приложения
+    "log_max_mb": 5.0,
+    "app_check_updates": True,
     # настройки приложения
     "telegram_package": "auto",
     "lang": "auto",
@@ -198,6 +201,13 @@ def validate(cfg: Dict[str, Any]) -> Dict[str, str]:
     except ValueError:
         errors["saver_timeout_min"] = "err_saver_timeout"
 
+    try:
+        mb = float(str(cfg.get("log_max_mb", "")).strip().replace(",", "."))
+        if not (0.5 <= mb <= 100):
+            raise ValueError
+    except ValueError:
+        errors["log_max_mb"] = "err_log_mb"
+
     ftls = str(cfg.get("fake_tls_domain", "")).strip()
     if ftls and (not is_valid_domain(ftls) or not ftls.isascii()):
         errors["fake_tls_domain"] = "err_domain"
@@ -221,8 +231,9 @@ def normalize(cfg: Dict[str, Any]) -> Dict[str, Any]:
     out["cfproxy_worker_domains"] = split_domains(out["cfproxy_worker_domains"])
     out["fake_tls_domain"] = str(out["fake_tls_domain"]).strip()
     out["saver_timeout_min"] = to_float(out["saver_timeout_min"], DEFAULTS["saver_timeout_min"])
+    out["log_max_mb"] = to_float(out["log_max_mb"], DEFAULTS["log_max_mb"])
     for k in ("no_h2", "no_cfproxy", "no_secure", "force_test_dc",
-              "proxy_protocol", "verbose", "first_run_done", "battery_saver", "saver_debug"):
+              "proxy_protocol", "verbose", "first_run_done", "battery_saver", "saver_debug", "app_check_updates"):
         out[k] = bool(out[k])
     for k in ("telegram_package", "lang", "theme"):
         out[k] = str(out[k]) or DEFAULTS[k]

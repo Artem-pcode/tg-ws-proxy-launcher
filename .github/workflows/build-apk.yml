@@ -54,6 +54,18 @@ jobs:
       - name: Install Buildozer
         run: python -m pip install --upgrade pip wheel setuptools buildozer==1.5.0 "cython==0.29.36"
 
+      - name: Restore signing key (stable signature for in-app updates)
+        env:
+          DEBUG_KEYSTORE_B64: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: |
+          mkdir -p ~/.android
+          if [ -n "$DEBUG_KEYSTORE_B64" ]; then
+            echo "$DEBUG_KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+            echo "Using the stable key from secret DEBUG_KEYSTORE_B64"
+          else
+            echo "::warning::Secret DEBUG_KEYSTORE_B64 is not set: the APK gets a random signature and cannot be installed over a previous build (see docs/BUILD.md)"
+          fi
+
       - name: Build APK
         run: buildozer -v android debug
 

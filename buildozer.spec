@@ -2,7 +2,7 @@
 title = TG WS Proxy
 package.name = tgwsproxy
 package.domain = org.tgwsproxy
-version = 1.0.0
+version = 1.0.1
 
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json,pem,txt
@@ -26,7 +26,7 @@ requirements = python3,kivy==2.3.0,pyjnius,android,openssl,certifi,httpx==0.28.1
 # foreground-сервис с прокси; sticky - система перезапустит его, если убьёт
 services = proxysvc:services/proxy_service.py:foreground:sticky
 
-android.permissions = INTERNET,FOREGROUND_SERVICE,WAKE_LOCK,POST_NOTIFICATIONS,REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,QUERY_ALL_PACKAGES,PACKAGE_USAGE_STATS,READ_DEVICE_CONFIG
+android.permissions = INTERNET,FOREGROUND_SERVICE,WAKE_LOCK,POST_NOTIFICATIONS,REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,QUERY_ALL_PACKAGES,PACKAGE_USAGE_STATS,READ_DEVICE_CONFIG,REQUEST_INSTALL_PACKAGES
 
 android.add_src = java
 android.add_resources = res/drawable:drawable

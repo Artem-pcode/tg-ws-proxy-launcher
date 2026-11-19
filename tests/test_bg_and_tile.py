@@ -43,6 +43,7 @@ class TilePackaging(unittest.TestCase):
             self.assertFalse(p4a_hook.patch_manifest(p))        # идемпотентно
             t = open(p).read()
             self.assertIn('x.y.ProxyTileService', t)
+            self.assertIn('android:authorities="x.y.apkprovider"', t)
             self.assertIn("BIND_QUICK_SETTINGS_TILE", t)
             import xml.dom.minidom as m
             m.parseString(t)
