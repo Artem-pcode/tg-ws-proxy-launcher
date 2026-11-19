@@ -1,4 +1,4 @@
-"""Экран «Ядро»: проверка/загрузка обновления с GitHub, откат."""
+"""Экран «Обновления»: обновление приложения (APK) и прокси-ядра с GitHub, откат ядра."""
 from __future__ import annotations
 
 import logging
@@ -12,6 +12,7 @@ from ...core.i18n import tr
 from ..theme import Theme
 from ..widgets import (AppButton, Card, ProgressLine, SectionTitle, Toast,
                        WrapLabel)
+from .app_update_card import AppUpdateCard
 from .base import BaseScreen
 
 log = logging.getLogger("tgwsp.ui.update")
@@ -31,6 +32,9 @@ class UpdateScreen(BaseScreen):
     def build(self):
         self._busy = False
         self._latest = None
+
+        self.app_card = AppUpdateCard(self.app)
+        self.body.add_widget(self.app_card)
 
         info = Card()
         info.add_widget(SectionTitle(tr("core_title")))

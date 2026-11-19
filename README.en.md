@@ -2,7 +2,7 @@
 
 **An Android app that runs a local Telegram proxy on your phone** and lets you control it with one button,
 a home-screen shortcut or a quick-settings tile. Built on
-[Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) (MTProto → WebSocket), core v1.11.2.
+[Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) (MTProto → WebSocket), core v1.11.4.
 
 [Русский](README.md) | English
 
@@ -26,6 +26,17 @@ If messages work but **photos and videos do not load**, keep only one line in th
 3. Tap **Save**, then **Status → Restart**.
 
 If it gets worse, tap “Reset to defaults” in Settings.
+
+## ⚠️ Proxy not working? Enable “Disable TLS for CF proxy and CF worker”
+
+If the proxy won't connect (Telegram says the proxy is unavailable, status never becomes “connected”):
+
+1. Open **Settings**.
+2. Enable **“Disable TLS for CF proxy and CF worker”** (`--no-secure`).
+3. Tap **Save**.
+4. **Status** tab → **Restart**.
+
+CF connections will use port 80 without TLS. Note: HTTP/2 for media will not work in this mode.
 
 ## Features
 
@@ -67,6 +78,13 @@ adb shell pm grant org.tgwsproxy.tgwsproxy android.permission.READ_DEVICE_CONFIG
 ```
 
 The last command only lets the app verify the limit. Open the ADB tab and tap “Check again”.
+
+## Logs and app updates
+
+**Logs** shows only the latest lines; **Open full log** gives a full-screen, paged view (Newer / Older, 150 lines per page).
+**Updates → Application** checks the [releases page](https://github.com/Artem-pcode/tg-ws-proxy-launcher/releases), downloads the new APK and opens
+the system installer. In-place updates require every APK to be signed with the same key - see the signing section in
+[docs/BUILD.md](docs/BUILD.md) (Russian). The setting “Disable TLS for CF proxy and CF worker” (`--no-secure`) is in Settings.
 
 ## Build
 

@@ -352,3 +352,21 @@ def request_add_tile() -> bool:
     except Exception:                                  # noqa: BLE001
         log.exception("request_add_tile")
         return False
+
+
+# ------------------------------------------------- установка APK (самообновление)
+
+def install_apk(name: str) -> int:
+    """Запустить системную установку скачанного APK. 0 - начата, 1 - нужно разрешение, 2 - ошибка.
+
+    Вызывать из главного потока (ApkInstaller - класс приложения).
+    """
+    if not available():
+        log.info("[desktop] install apk %s", name)
+        return 0
+    try:
+        from jnius import autoclass  # type: ignore
+        return int(autoclass(package_name() + ".ApkInstaller").install(activity(), name))
+    except Exception:                                  # noqa: BLE001
+        log.exception("install_apk")
+        return 2

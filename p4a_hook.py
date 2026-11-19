@@ -1,14 +1,14 @@
-"""Хук python-for-android: добавляет в AndroidManifest.xml сервис плитки быстрых настроек.
+"""Хук python-for-android: добавляет в AndroidManifest.xml компоненты, которых p4a штатно не умеет.
 
-p4a не умеет добавлять <service> с intent-filter штатно, поэтому после
-генерации манифеста (after_apk_build, рабочая папка = dist) вставляем блок
-перед </application>. Идемпотентно.
+Блоки (вставляются перед </application>, идемпотентно, после генерации манифеста - after_apk_build):
+  * ProxyTileService - плитка быстрых настроек;
+  * ApkProvider - выдача скачанного APK системному установщику (самообновление приложения).
 """
 import os
+import re
 
-MARK = "ProxyTileService"
-
-SERVICE_XML = """
+BLOCKS = [
+    ("ProxyTileService", """
         <service android:name="{package}.ProxyTileService"
                  android:label="TG WS Proxy"
                  android:icon="@drawable/ic_tile"
@@ -20,11 +20,17 @@ SERVICE_XML = """
             <meta-data android:name="android.service.quicksettings.ACTIVE_TILE"
                        android:value="false" />
         </service>
-"""
+"""),
+    ("ApkProvider", """
+        <provider android:name="{package}.ApkProvider"
+                  android:authorities="{package}.apkprovider"
+                  android:exported="false"
+                  android:grantUriPermissions="true" />
+"""),
+]
 
 
 def _package(text):
-    import re
     m = re.search(r'<manifest[^>]*\spackage="([^"]+)"', text)
     return m.group(1) if m else "org.tgwsproxy.tgwsproxy"
 
@@ -32,13 +38,18 @@ def _package(text):
 def patch_manifest(path):
     with open(path, "r", encoding="utf-8") as f:
         text = f.read()
-    if MARK in text or "</application>" not in text:
+    if "</application>" not in text:
         return False
-    xml = SERVICE_XML.format(package=_package(text))
-    text = text.replace("</application>", xml + "    </application>", 1)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(text)
-    return True
+    pkg, changed = _package(text), False
+    for mark, xml in BLOCKS:
+        if mark in text:
+            continue
+        text = text.replace("</application>", xml.format(package=pkg) + "    </application>", 1)
+        changed = True
+    if changed:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+    return changed
 
 
 def after_apk_build(toolchain):

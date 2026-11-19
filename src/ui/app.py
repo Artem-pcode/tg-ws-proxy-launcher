@@ -88,6 +88,7 @@ class TgWsProxyApp(App):
         Window.bind(on_keyboard=self._on_key)
         self.current_tab = "status"
         self._launching = False
+        self.app_update_info = None
         self.container = BoxLayout()
         self._build_ui("status")
         return self.container
@@ -159,6 +160,31 @@ class TgWsProxyApp(App):
             except Exception:                           # noqa: BLE001
                 log.exception("bind on_new_intent")
         Clock.schedule_once(lambda dt: self._handle_intent_action(au.get_intent_action()), 0.2)
+        if self.cfg.get("app_check_updates", True):
+            Clock.schedule_once(lambda dt: self._startup_update_check(), 3.0)
+
+    def _startup_update_check(self):
+        import threading
+        from ..core import app_update
+
+        def work():
+            try:
+                info = app_update.check_latest()
+            except Exception as exc:                     # noqa: BLE001
+                log.info("startup update check: %r", exc)
+                return
+            self._startup_update_done(info)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    @mainthread
+    def _startup_update_done(self, info):
+        self.app_update_info = info
+        if info.get("newer"):
+            Toast.show(tr("app_new_toast", tag=info["tag"]), 5)
+            card = getattr(self.screens.get("core"), "app_card", None)
+            if card is not None:
+                card._show_result(info)
 
     def on_resume(self):
         return True

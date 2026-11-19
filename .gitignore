@@ -11,5 +11,5 @@ venv/
 .vscode/
 *.apk
 *.aab
-.secrets/
 secrets/
+.secrets/

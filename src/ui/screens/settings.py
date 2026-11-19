@@ -64,6 +64,7 @@ class SettingsScreen(BaseScreen):
         add_field("cfproxy_worker_domains", tr("f_cf_workers"), "cfproxy_worker_domains",
                   multiline=True, rows=3)
         add_field("fake_tls_domain", tr("f_fake_tls"), "fake_tls_domain")
+        add_field("log_max_mb", tr("f_log_mb"), "log_max_mb", input_filter="float")
 
         for key, label in (("no_h2", "f_no_h2"), ("no_cfproxy", "f_no_cf"),
                            ("no_secure", "f_no_secure"), ("force_test_dc", "f_force_test"),
@@ -99,6 +100,9 @@ class SettingsScreen(BaseScreen):
 
         app_card = Card()
         app_card.add_widget(SectionTitle(tr("set_app")))
+        urow = SwitchRow(tr("f_app_updates"), on_change=lambda v: self._switch("app_check_updates", v))
+        self.switches["app_check_updates"] = urow
+        app_card.add_widget(urow)
         self.tg_btn = AppButton(text="", kind="secondary", height=dp(44), on_press_cb=self._cycle_tg)
         self.lang_btn = AppButton(text="", kind="secondary", height=dp(44), on_press_cb=self._cycle_lang)
         self.theme_btn = AppButton(text="", kind="secondary", height=dp(44), on_press_cb=self._cycle_theme)
@@ -125,6 +129,7 @@ class SettingsScreen(BaseScreen):
             f["cfproxy_worker_domains"].text = "\n".join(cfg["cfproxy_worker_domains"])
             f["fake_tls_domain"].text = cfg["fake_tls_domain"]
             f["saver_timeout_min"].text = f"{cfg['saver_timeout_min']:g}"
+            f["log_max_mb"].text = f"{cfg['log_max_mb']:g}"
             for k, row in self.switches.items():
                 row.active = bool(cfg[k])
         finally:
@@ -144,6 +149,7 @@ class SettingsScreen(BaseScreen):
             cfproxy_worker_domains=cs.split_domains(f["cfproxy_worker_domains"].text),
             fake_tls_domain=f["fake_tls_domain"].text.strip(),
             saver_timeout_min=f["saver_timeout_min"].text.strip(),
+            log_max_mb=f["log_max_mb"].text.strip(),
         )
         for k, row in self.switches.items():
             cfg[k] = row.active
